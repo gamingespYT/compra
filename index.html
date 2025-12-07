@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lista de compra inversa para supermercado">
+    <title>Lista de Compra - Supermercado</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Header fijo -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <svg class="icon-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <div>
+                    <h1>Lista de Compra</h1>
+                    <p class="subtitle">Supermercado Inteligente</p>
+                </div>
+            </div>
+            <button id="btnClearAll" class="btn-icon" title="Limpiar lista">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <!-- Panel de totales -->
+        <div class="totals-panel">
+            <div class="total-row">
+                <span>Subtotal bruto:</span>
+                <span class="total-value" id="subtotalBruto">0.00 €</span>
+            </div>
+
+            <div class="total-row border-top saving">
+                <span>Ahorro total:</span>
+                <span class="total-value" id="ahorroTotal">-0.00 €</span>
+            </div>
+
+            <div class="total-row border-top-bold final">
+                <span>Total a pagar:</span>
+                <span class="total-value" id="totalFinal">0.00 €</span>
+            </div>
+
+            <div id="clubRow" class="total-row small-text club-accumulation hidden">
+                <span>Acumulado club:</span>
+                <span class="total-value" id="clubTotal">0.00 €</span>
+            </div>
+
+            <div id="couponRow" class="total-row small-text coupon-value hidden">
+                <span>Cupón próxima compra:</span>
+                <span class="total-value" id="couponTotal">0.00 €</span>
+            </div>
+        </div>
+
+        <!-- Lista de productos -->
+        <div id="productsList" class="products-list">
+            <div class="empty-state">
+                <svg class="icon-cart-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <p>No hay productos en la lista</p>
+                <p class="small-text">Añade productos para empezar</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Botón flotante para añadir -->
+    <button id="btnAddProduct" class="btn-floating">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+
+    <!-- Modal de formulario -->
+    <div id="modalForm" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Añadir Producto</h2>
+                <button id="btnCloseModal" class="btn-close">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nombre del producto</label>
+                    <input type="text" id="inputName" placeholder="Ej: Leche entera 1L (opcional)">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio unitario (€) *</label>
+                        <input type="number" id="inputPrice" step="0.01" min="0" placeholder="0.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cantidad *</label>
+                        <input type="number" id="inputQuantity" min="1" value="1" required>
+                    </div>
+                </div>
+
+                <!-- Selector de categoría de oferta -->
+                <div class="form-group">
+                    <label>Tipo de oferta</label>
+                    <div class="offer-category-selector">
+                        <button type="button" class="category-btn active" data-category="none">
+                            Sin oferta
+                        </button>
+                        <button type="button" class="category-btn" data-category="direct">
+                            Oferta Directa
+                        </button>
+                        <button type="button" class="category-btn" data-category="club">
+                            Acumulado Club
+                        </button>
+                        <button type="button" class="category-btn" data-category="coupon">
+                            Cupón
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sección: Ofertas Directas -->
+                <div id="directOfferSection" class="offer-section hidden">
+                    <div class="form-group">
+                        <label>Oferta directa</label>
+                        <select id="selectDirectOffer">
+                            <option value="3x2">3x2 (paga 2, lleva 3)</option>
+                            <option value="2x1">2x1 (paga 1, lleva 2)</option>
+                            <option value="2nd50">2ª unidad al 50%</option>
+                            <option value="2nd70">2ª unidad al 70%</option>
+                            <option value="custom">Personalizada</option>
+                        </select>
+                    </div>
+
+                    <div id="directCustomSection" class="custom-offer hidden">
+                        <div class="form-group">
+                            <label>Tipo de descuento</label>
+                            <select id="selectDirectCustomType">
+                                <option value="percentage">Descuento directo (%)</option>
+                                <option value="2ndCustom">2ª unidad a % personalizado</option>
+                                <option value="xForY">X unidades compradas, Y pagadas</option>
+                            </select>
+                        </div>
+
+                        <div id="directPercentageInput" class="form-group">
+                            <label>Porcentaje de descuento</label>
+                            <input type="number" id="inputDirectPercentage" step="0.01" min="0" max="100"
+                                placeholder="20">
+                        </div>
+
+                        <div id="direct2ndCustomInput" class="form-group hidden">
+                            <label>Porcentaje 2ª unidad</label>
+                            <input type="number" id="inputDirect2ndPercent" step="0.01" min="0" max="100"
+                                placeholder="30">
+                        </div>
+
+                        <div id="directXForYInputs" class="form-row hidden">
+                            <div class="form-group">
+                                <label>Unidades compradas</label>
+                                <input type="number" id="inputDirectX" min="1" placeholder="4">
+                            </div>
+                            <div class="form-group">
+                                <label>Unidades pagadas</label>
+                                <input type="number" id="inputDirectY" min="1" placeholder="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Acumulado Club -->
+                <div id="clubOfferSection" class="offer-section hidden">
+                    <div class="form-group">
+                        <label>Acumulado club</label>
+                        <select id="selectClubOffer">
+                            <option value="2x1">2x1 (paga 1, lleva 2)</option>
+                            <option value="2nd50">2ª unidad al 50%</option>
+                            <option value="2nd70">2ª unidad al 70%</option>
+                            <option value="custom">Personalizada</option>
+                        </select>
+                    </div>
+
+                    <div id="clubCustomSection" class="custom-offer hidden">
+                        <div class="form-group">
+                            <label>Tipo de descuento</label>
+                            <select id="selectClubCustomType">
+                                <option value="percentage">Descuento directo (%)</option>
+                                <option value="2ndCustom">2ª unidad a % personalizado</option>
+                                <option value="xForY">X unidades compradas, Y pagadas</option>
+                            </select>
+                        </div>
+
+                        <div id="clubPercentageInput" class="form-group">
+                            <label>Porcentaje de descuento</label>
+                            <input type="number" id="inputClubPercentage" step="0.01" min="0" max="100"
+                                placeholder="20">
+                        </div>
+
+                        <div id="club2ndCustomInput" class="form-group hidden">
+                            <label>Porcentaje 2ª unidad</label>
+                            <input type="number" id="inputClub2ndPercent" step="0.01" min="0" max="100"
+                                placeholder="30">
+                        </div>
+
+                        <div id="clubXForYInputs" class="form-row hidden">
+                            <div class="form-group">
+                                <label>Unidades compradas</label>
+                                <input type="number" id="inputClubX" min="1" placeholder="4">
+                            </div>
+                            <div class="form-group">
+                                <label>Unidades pagadas</label>
+                                <input type="number" id="inputClubY" min="1" placeholder="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Cupón -->
+                <div id="couponOfferSection" class="offer-section hidden">
+                    <div class="form-group">
+                        <label>Cupón próxima compra</label>
+                        <select id="selectCouponOffer">
+                            <option value="3x2">3x2 (paga 2, lleva 3)</option>
+                            <option value="2x1">2x1 (paga 1, lleva 2)</option>
+                            <option value="2nd50">2ª unidad al 50%</option>
+                            <option value="2nd70">2ª unidad al 70%</option>
+                            <option value="discount50">-50% descuento</option>
+                            <option value="discount20">-20% descuento</option>
+                            <option value="custom">Personalizada</option>
+                        </select>
+                    </div>
+
+                    <div id="couponCustomSection" class="custom-offer hidden">
+                        <div class="form-group">
+                            <label>Tipo de descuento</label>
+                            <select id="selectCouponCustomType">
+                                <option value="percentage">Descuento directo (%)</option>
+                                <option value="2ndCustom">2ª unidad a % personalizado</option>
+                                <option value="xForY">X unidades compradas, Y pagadas</option>
+                            </select>
+                        </div>
+
+                        <div id="couponPercentageInput" class="form-group">
+                            <label>Porcentaje de descuento</label>
+                            <input type="number" id="inputCouponPercentage" step="0.01" min="0" max="100"
+                                placeholder="20">
+                        </div>
+
+                        <div id="coupon2ndCustomInput" class="form-group hidden">
+                            <label>Porcentaje 2ª unidad</label>
+                            <input type="number" id="inputCoupon2ndPercent" step="0.01" min="0" max="100"
+                                placeholder="30">
+                        </div>
+
+                        <div id="couponXForYInputs" class="form-row hidden">
+                            <div class="form-group">
+                                <label>Unidades compradas</label>
+                                <input type="number" id="inputCouponX" min="1" placeholder="4">
+                            </div>
+                            <div class="form-group">
+                                <label>Unidades pagadas</label>
+                                <input type="number" id="inputCouponY" min="1" placeholder="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="btnCancel" class="btn-secondary">Cancelar</button>
+                    <button id="btnSubmit" class="btn-primary">Añadir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación de borrado -->
+    <div id="modalConfirm" class="modal hidden">
+        <div class="modal-content modal-small">
+            <h3>¿Limpiar toda la lista?</h3>
+            <p class="confirm-text">Esta acción eliminará todos los productos de la lista. No se puede deshacer.</p>
+            <div class="modal-actions">
+                <button id="btnCancelDelete" class="btn-secondary">Cancelar</button>
+                <button id="btnConfirmDelete" class="btn-danger">Limpiar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
