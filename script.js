@@ -216,9 +216,13 @@ function renderTotals() {
     document.getElementById('ahorroTotal').textContent = `-${totals.ahorroTotal.toFixed(2)} €`;
     document.getElementById('totalFinal').textContent = `${totals.totalAPagar.toFixed(2)} €`;
 
+    // Añadir automáticamente 1% del total a pagar al acumulado club
+    const autoClubAccumulation = totals.totalAPagar * 0.01;
+    const totalClubWithAuto = totals.clubTotal + autoClubAccumulation;
+
     const clubRow = document.getElementById('clubRow');
-    if (totals.clubTotal > 0) {
-        document.getElementById('clubTotal').textContent = `${totals.clubTotal.toFixed(2)} €`;
+    if (totalClubWithAuto > 0) {
+        document.getElementById('clubTotal').textContent = `${totalClubWithAuto.toFixed(2)} €`;
         clubRow.classList.remove('hidden');
     } else {
         clubRow.classList.add('hidden');
