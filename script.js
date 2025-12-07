@@ -1,6 +1,7 @@
 // Estado de la aplicación
 let products = [];
 let currentOfferCategory = 'none';
+let editingProductId = null;
 
 // Cargar productos desde localStorage
 function loadProducts() {
@@ -163,12 +164,20 @@ function renderProducts() {
                         <h3 class="product-name">${product.name}</h3>
                         <p class="product-details">${product.quantity} × ${product.price.toFixed(2)} €</p>
                     </div>
-                    <button class="btn-delete" onclick="deleteProduct(${product.id})">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-icon" onclick="editProduct(${product.id})" title="Editar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-delete" onclick="deleteProduct(${product.id})">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 ${offerLabel ? `<div class="offer-badge">${offerLabel}</div>` : ''}
                 <div class="product-footer">
@@ -280,7 +289,18 @@ function addProduct() {
         }
     }
 
-    products.push(newProduct);
+    if (editingProductId) {
+        // Modo edición: actualizar producto existente
+        const index = products.findIndex(p => p.id === editingProductId);
+        if (index !== -1) {
+            newProduct.id = editingProductId; // Mantener el mismo ID
+            products[index] = newProduct;
+        }
+        editingProductId = null;
+    } else {
+        // Modo añadir: agregar nuevo producto
+        products.push(newProduct);
+    }
     saveProducts();
     render();
     closeModal();
@@ -291,6 +311,73 @@ function deleteProduct(id) {
     products = products.filter(p => p.id !== id);
     saveProducts();
     render();
+}
+
+function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    editingProductId = id;
+
+    // Cargar datos básicos
+    document.getElementById('inputName').value = product.name;
+    document.getElementById('inputPrice').value = product.price;
+    document.getElementById('inputQuantity').value = product.quantity;
+
+    // Cambiar categoría
+    switchOfferCategory(product.offerCategory);
+
+    // Cargar oferta según categoría
+    if (product.offerCategory === 'direct') {
+        document.getElementById('selectDirectOffer').value = product.offerType;
+        toggleDirectCustom();
+        if (product.offerType === 'custom') {
+            document.getElementById('selectDirectCustomType').value = product.customType;
+            updateDirectCustomInputs();
+            if (product.customType === 'percentage') {
+                document.getElementById('inputDirectPercentage').value = product.customValue;
+            } else if (product.customType === '2ndCustom') {
+                document.getElementById('inputDirect2ndPercent').value = product.customValue;
+            } else if (product.customType === 'xForY') {
+                document.getElementById('inputDirectX').value = product.customX;
+                document.getElementById('inputDirectY').value = product.customY;
+            }
+        }
+    } else if (product.offerCategory === 'club') {
+        document.getElementById('selectClubOffer').value = product.offerType;
+        toggleClubCustom();
+        if (product.offerType === 'custom') {
+            document.getElementById('selectClubCustomType').value = product.customType;
+            updateClubCustomInputs();
+            if (product.customType === 'percentage') {
+                document.getElementById('inputClubPercentage').value = product.customValue;
+            } else if (product.customType === '2ndCustom') {
+                document.getElementById('inputClub2ndPercent').value = product.customValue;
+            } else if (product.customType === 'xForY') {
+                document.getElementById('inputClubX').value = product.customX;
+                document.getElementById('inputClubY').value = product.customY;
+            }
+        }
+    } else if (product.offerCategory === 'coupon') {
+        document.getElementById('selectCouponOffer').value = product.offerType;
+        toggleCouponCustom();
+        if (product.offerType === 'custom') {
+            document.getElementById('selectCouponCustomType').value = product.customType;
+            updateCouponCustomInputs();
+            if (product.customType === 'percentage') {
+                document.getElementById('inputCouponPercentage').value = product.customValue;
+            } else if (product.customType === '2ndCustom') {
+                document.getElementById('inputCoupon2ndPercent').value = product.customValue;
+            } else if (product.customType === 'xForY') {
+                document.getElementById('inputCouponX').value = product.customX;
+                document.getElementById('inputCouponY').value = product.customY;
+            }
+        }
+    }
+
+    // Cambiar título del modal
+    document.querySelector('#modalForm h2').textContent = 'Editar Producto';
+    openModal();
 }
 
 function clearAllProducts() {
@@ -311,6 +398,9 @@ function resetForm() {
     document.getElementById('inputPrice').value = '';
     document.getElementById('inputQuantity').value = '1';
     currentOfferCategory = 'none';
+    editingProductId = null;
+
+    document.querySelector('#modalForm h2').textContent = 'Añadir Producto';
     document.querySelectorAll('.category-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.category === 'none'));
     document.getElementById('directOfferSection').classList.add('hidden');
     document.getElementById('clubOfferSection').classList.add('hidden');
@@ -395,3 +485,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.deleteProduct = deleteProduct;
+window.editProduct = editProduct;
