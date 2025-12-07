@@ -661,3 +661,12 @@ body {
     width: 1.25rem;
     height: 1.25rem;
 }
+
+
+
+/* Fix: Aplicar border-radius completo al modal en móvil */
+@media (max-width: 768px) {
+    .modal-content {
+        border-radius: 1rem !important;
+    }
+}
