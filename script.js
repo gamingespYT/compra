@@ -393,7 +393,10 @@ function clearAllProducts() {
 
 // Modales
 function openModal() { document.getElementById('modalForm').classList.remove('hidden'); }
-function closeModal() { document.getElementById('modalForm').classList.add('hidden'); }
+function closeModal() {
+    document.getElementById('modalForm').classList.add('hidden');
+    resetForm(); // Siempre resetear al cerrar para evitar que el estado de edición persista
+}
 function openConfirmModal() { document.getElementById('modalConfirm').classList.remove('hidden'); }
 function closeConfirmModal() { document.getElementById('modalConfirm').classList.add('hidden'); }
 
