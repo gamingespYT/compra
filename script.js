@@ -31,16 +31,24 @@ function calculateProductTotal(product) {
     let discount = 0;
     let clubValue = 0;
     let couponValue = 0;
+    let giftCouponValue = 0; // Nueva: para productos gratis (cupón regalo)
 
     if (product.offerCategory === 'none') {
-        return { basePrice, finalPrice, discount, clubValue, couponValue };
+        return { basePrice, finalPrice, discount, clubValue, couponValue, giftCouponValue };
     }
 
     const calc = calculateOfferDiscount(product);
     discount = calc.discount;
 
     if (product.offerCategory === 'direct') {
-        finalPrice = basePrice - discount;
+        // Productos gratis: NO cuentan como descuento, sino como cupón regalo
+        if (product.offerType === 'free') {
+            giftCouponValue = basePrice; // Va a la línea "Cupón regalo"
+            discount = 0; // No suma al ahorro total
+            finalPrice = basePrice; // No se reduce el total a pagar
+        } else {
+            finalPrice = basePrice - discount; // Descuento normal se aplica
+        }
     } else if (product.offerCategory === 'club') {
         clubValue = discount;
         finalPrice = basePrice;
@@ -49,7 +57,7 @@ function calculateProductTotal(product) {
         finalPrice = basePrice;
     }
 
-    return { basePrice, finalPrice, discount, clubValue, couponValue };
+    return { basePrice, finalPrice, discount, clubValue, couponValue, giftCouponValue };
 }
 
 function calculateOfferDiscount(product) {
@@ -76,6 +84,10 @@ function calculateOfferDiscount(product) {
             const pairs70 = Math.floor(product.quantity / 2);
             const single70 = product.quantity % 2;
             discount = basePrice - ((pairs70 * product.price * 1.7) + (single70 * product.price));
+            break;
+        case 'free':
+            // Producto gratis: genera descuento visual pero no reduce el total a pagar
+            discount = basePrice;
             break;
         case 'discount50':
             discount = basePrice * 0.50;
@@ -121,6 +133,7 @@ function calculateTotals() {
     let ahorroTotal = 0;
     let clubTotal = 0;
     let couponTotal = 0;
+    let giftCouponTotal = 0; // Nueva: total de cupones regalo
 
     products.forEach(product => {
         const calc = calculateProductTotal(product);
@@ -129,9 +142,10 @@ function calculateTotals() {
         ahorroTotal += calc.discount;
         clubTotal += calc.clubValue;
         couponTotal += calc.couponValue;
+        giftCouponTotal += calc.giftCouponValue; // Suma cupones regalo
     });
 
-    return { subtotalBruto, totalAPagar, ahorroTotal, clubTotal, couponTotal };
+    return { subtotalBruto, totalAPagar, ahorroTotal, clubTotal, couponTotal, giftCouponTotal };
 }
 
 // Renderizado
@@ -179,12 +193,12 @@ function renderProducts() {
                         </button>
                     </div>
                 </div>
-                ${offerLabel ? `<div class="offer-badge">${offerLabel}</div>` : ''}
+                ${offerLabel ? `<div class="offer-badge"${product.offerType === 'free' ? ' data-free="true"' : ''}>${offerLabel}</div>` : ''}
                 <div class="product-footer">
                     <span class="product-footer-label">Subtotal:</span>
                     <div class="product-footer-prices">
                         ${calc.discount > 0 && product.offerCategory === 'direct' ? `<span class="price-original">${calc.basePrice.toFixed(2)} €</span>` : ''}
-                        <span class="price-final">${calc.finalPrice.toFixed(2)} €</span>
+                        <span class="price-final">${product.offerType === 'free' ? '0.00' : calc.finalPrice.toFixed(2)} €</span>
                     </div>
                 </div>
             </div>
@@ -196,7 +210,12 @@ function getOfferLabel(product) {
     if (product.offerCategory === 'none') return '';
 
     const categoryLabels = { 'direct': '🎯 Oferta Directa', 'club': '⭐ Acumulado Club', 'coupon': '🎟️ Cupón' };
-    const offerLabels = { '3x2': '3x2', '2x1': '2x1', '2nd50': '2ª al 50%', '2nd70': '2ª al 70%', 'discount50': '-50%', 'discount20': '-20%', 'custom': 'Personalizada' };
+    const offerLabels = { '3x2': '3x2', '2x1': '2x1', '2nd50': '2ª al 50%', '2nd70': '2ª al 70%', 'discount50': '-50%', 'discount20': '-20%', 'free': 'GRATIS 🎁', 'custom': 'Personalizada' };
+
+    // Caso especial para producto gratis: mostrar solo el emoji y texto
+    if (product.offerType === 'free') {
+        return '🎁 GRATIS';
+    }
 
     let label = `${categoryLabels[product.offerCategory]}: ${offerLabels[product.offerType] || product.offerType}`;
 
@@ -215,6 +234,15 @@ function renderTotals() {
     document.getElementById('subtotalBruto').textContent = `${totals.subtotalBruto.toFixed(2)} €`;
     document.getElementById('ahorroTotal').textContent = `-${totals.ahorroTotal.toFixed(2)} €`;
     document.getElementById('totalFinal').textContent = `${totals.totalAPagar.toFixed(2)} €`;
+
+    // Cupón regalo (productos gratis de fin de semana)
+    const giftCouponRow = document.getElementById('giftCouponRow');
+    if (totals.giftCouponTotal > 0) {
+        document.getElementById('giftCouponTotal').textContent = `${totals.giftCouponTotal.toFixed(2)} €`;
+        giftCouponRow.classList.remove('hidden');
+    } else {
+        giftCouponRow.classList.add('hidden');
+    }
 
     // Añadir automáticamente 1% del total a pagar al acumulado club
     const autoClubAccumulation = totals.totalAPagar * 0.01;

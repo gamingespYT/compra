@@ -670,3 +670,21 @@ body {
         border-radius: 1rem !important;
     }
 }
+
+
+
+/* Badge especial para productos gratis */
+.offer-badge[data-free='true'] {
+    background: #10b981 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+/* Cupón regalo (productos gratis de fin de semana) */
+.gift-coupon {
+    color: #10b981;
+    font-weight: 500;
+}
+
+.gift-coupon .total-value {
+    color: #10b981;
+}

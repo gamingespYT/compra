@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lista de compra inversa para supermercado">
     <title>Lista de Compra - Supermercado</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -51,6 +52,11 @@
             <div class="total-row border-top-bold final">
                 <span>Total a pagar:</span>
                 <span class="total-value" id="totalFinal">0.00 €</span>
+            </div>
+
+            <div id="giftCouponRow" class="total-row small-text gift-coupon hidden">
+                <span>🎁 Cupón regalo:</span>
+                <span class="total-value" id="giftCouponTotal">0.00 €</span>
             </div>
 
             <div id="clubRow" class="total-row small-text club-accumulation hidden">
@@ -140,6 +146,7 @@
                             <option value="2x1">2x1 (paga 1, lleva 2)</option>
                             <option value="2nd50">2ª unidad al 50%</option>
                             <option value="2nd70">2ª unidad al 70%</option>
+                            <option value="free">Producto gratis 🎁</option>
                             <option value="custom">Personalizada</option>
                         </select>
                     </div>
