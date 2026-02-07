@@ -810,94 +810,7 @@ body {
     height: 1.125rem;
 }
 
-/* Selector de ticket en modal */
-.ticket-selector .offer-category-selector {
-    display: flex;
-    gap: 0.5rem;
-}
 
-.ticket-selector .category-label {
-    padding: 0.5rem 1rem;
-}
-
-/* Responsive para móvil */
-@media (max-width: 768px) {
-    .ticket-mode-toggle {
-        padding: 0.125rem;
-    }
-    
-    .mode-btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
-    
-    .view-selector {
-        padding: 0.375rem 0.75rem;
-        top: 4rem;
-    }
-    
-    .view-btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-    }
-    
-    .header-actions {
-        gap: 0.5rem;
-    }
-}
-
-/* Selector de ticket en modal - botones grandes para móvil */
-.ticket-selector .offer-category-selector {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-}
-
-.ticket-selector .offer-category-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    background: var(--color-bg-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-}
-
-.ticket-selector .offer-category-option:has(input:checked) {
-    border-color: var(--color-primary);
-    background: rgba(99, 102, 241, 0.1);
-}
-
-.ticket-selector .offer-category-option input {
-    display: none;
-}
-
-.ticket-selector .category-label {
-    font-size: 1.125rem;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-}
-
-/* Colores específicos para cada ticket */
-.ticket-selector .offer-category-option:first-child:has(input:checked) {
-    border-color: #10b981;
-    background: rgba(16, 185, 129, 0.1);
-}
-
-.ticket-selector .offer-category-option:last-child:has(input:checked) {
-    border-color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.1);
-}
-
-/* Hover en versión desktop */
-@media (hover: hover) {
-    .ticket-selector .offer-category-option:hover:not(:has(input:checked)) {
-        background: var(--color-bg-tertiary);
-    }
-}
 
 /* Fix z-index: modal debe estar por encima de view-selector */
 .modal {
@@ -906,4 +819,87 @@ body {
 
 .view-selector {
     z-index: 80 !important;
+}
+
+
+
+.ticket-selector .offer-category-option:last-child:has(input:checked) {
+    border-color: #8b5cf6 !important;
+    background: rgba(139, 92, 246, 0.15) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+}
+
+
+
+.ticket-selector .offer-category-option:not(:has(input:checked)):hover {
+    opacity: 1;
+    background: var(--color-bg-secondary) !important;
+}
+
+
+
+.ticket-selector .offer-category-option:first-child:has(input:checked) {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color: #10b981 !important;
+}
+
+.ticket-selector .offer-category-option:last-child:has(input:checked) {
+    background-color: rgba(139, 92, 246, 0.15) !important;
+    border-color: #8b5cf6 !important;
+}
+
+
+
+/* ===== SELECTOR DE TICKET - ESTILO DEFINITIVO ===== */
+.ticket-selector .offer-category-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.ticket-selector .offer-category-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    min-height: 3rem;
+}
+
+.ticket-selector .offer-category-option input {
+    display: none;
+}
+
+.ticket-selector .category-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding: 0;
+}
+
+/* Ticket 1 seleccionado - Verde */
+.ticket-selector .offer-category-option:first-child:has(input:checked) {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25), 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Ticket 2 seleccionado - Morado */
+.ticket-selector .offer-category-option:last-child:has(input:checked) {
+    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+    border-color: #8b5cf6;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25), 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* Hover */
+@media (hover: hover) {
+    .ticket-selector .offer-category-option:not(:has(input:checked)):hover {
+        border-color: #9ca3af;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        transform: translateY(-1px);
+    }
 }
