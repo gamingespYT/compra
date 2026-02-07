@@ -898,3 +898,12 @@ body {
         background: var(--color-bg-tertiary);
     }
 }
+
+/* Fix z-index: modal debe estar por encima de view-selector */
+.modal {
+    z-index: 1000 !important;
+}
+
+.view-selector {
+    z-index: 80 !important;
+}
