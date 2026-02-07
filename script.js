@@ -2,6 +2,8 @@
 let products = [];
 let currentOfferCategory = 'none';
 let editingProductId = null;
+let ticketMode = 'single'; // 'single' o 'dual'
+let currentView = 'all'; // 'all', 'ticket1', 'ticket2'
 
 // Cargar productos desde localStorage
 function loadProducts() {
@@ -9,7 +11,12 @@ function loadProducts() {
         const saved = localStorage.getItem('shoppingList');
         if (saved) {
             products = JSON.parse(saved);
+            // Migrar productos sin ticketId (compatibilidad)
+            products = products.map(p => ({ ...p, ticketId: p.ticketId || 1 }));
         }
+        // Cargar modo de ticket
+        const savedMode = localStorage.getItem('ticketMode');
+        if (savedMode) ticketMode = savedMode;
     } catch (e) {
         console.error('Error al cargar productos:', e);
         products = [];
@@ -19,10 +26,60 @@ function loadProducts() {
 function saveProducts() {
     try {
         localStorage.setItem('shoppingList', JSON.stringify(products));
+        localStorage.setItem('ticketMode', ticketMode);
     } catch (e) {
         console.error('Error al guardar productos:', e);
     }
 }
+
+// Gestión de tickets
+function setTicketMode(mode) {
+    ticketMode = mode;
+    const viewSelector = document.getElementById('viewSelector');
+    const ticketSelector = document.getElementById('ticketSelector');
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+
+    if (mode === 'dual') {
+        viewSelector.classList.remove('hidden');
+        if (ticketSelector) ticketSelector.classList.remove('hidden');
+    } else {
+        viewSelector.classList.add('hidden');
+        if (ticketSelector) ticketSelector.classList.add('hidden');
+        currentView = 'all';
+    }
+
+    saveProducts();
+    render();
+}
+
+function setCurrentView(view) {
+    currentView = view;
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    render();
+}
+
+function moveProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (product) {
+        product.ticketId = product.ticketId === 1 ? 2 : 1;
+        saveProducts();
+        render();
+    }
+}
+
+function getFilteredProducts() {
+    if (ticketMode === 'single' || currentView === 'all') {
+        return products;
+    }
+    const ticketId = currentView === 'ticket1' ? 1 : 2;
+    return products.filter(p => p.ticketId === ticketId);
+}
+
 
 // Calcular total de un producto
 function calculateProductTotal(product) {
@@ -133,16 +190,19 @@ function calculateTotals() {
     let ahorroTotal = 0;
     let clubTotal = 0;
     let couponTotal = 0;
-    let giftCouponTotal = 0; // Nueva: total de cupones regalo
+    let giftCouponTotal = 0;
 
-    products.forEach(product => {
+    // Usar productos filtrados según la vista actual
+    const productsToCalculate = getFilteredProducts();
+
+    productsToCalculate.forEach(product => {
         const calc = calculateProductTotal(product);
         subtotalBruto += calc.basePrice;
         totalAPagar += calc.finalPrice;
         ahorroTotal += calc.discount;
         clubTotal += calc.clubValue;
         couponTotal += calc.couponValue;
-        giftCouponTotal += calc.giftCouponValue; // Suma cupones regalo
+        giftCouponTotal += calc.giftCouponValue;
     });
 
     return { subtotalBruto, totalAPagar, ahorroTotal, clubTotal, couponTotal, giftCouponTotal };
@@ -151,8 +211,12 @@ function calculateTotals() {
 // Renderizado
 function renderProducts() {
     const container = document.getElementById('productsList');
+    const filteredProducts = getFilteredProducts();
 
-    if (products.length === 0) {
+    if (filteredProducts.length === 0) {
+        const emptyMessage = ticketMode === 'dual' && currentView !== 'all'
+            ? `No hay productos en ${currentView === 'ticket1' ? 'Ticket 1' : 'Ticket 2'}`
+            : 'No hay productos en la lista';
         container.innerHTML = `
             <div class="empty-state">
                 <svg class="icon-cart-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -160,25 +224,37 @@ function renderProducts() {
                     <circle cx="20" cy="21" r="1"></circle>
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                 </svg>
-                <p>No hay productos en la lista</p>
+                <p>${emptyMessage}</p>
                 <p class="small-text">Añade productos para empezar</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = products.map(product => {
+    container.innerHTML = filteredProducts.map(product => {
         const calc = calculateProductTotal(product);
         const offerLabel = getOfferLabel(product);
+        const showTicketBadge = ticketMode === 'dual';
+        const ticketBadge = showTicketBadge ? `<span class="ticket-badge" data-ticket="${product.ticketId}">${product.ticketId === 1 ? '🟢 T1' : '🟣 T2'}</span>` : '';
+        const moveButton = showTicketBadge ? `
+            <button class="btn-move" onclick="moveProduct(${product.id})" title="Mover al otro ticket">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="17 1 21 5 17 9"></polyline>
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                    <polyline points="7 23 3 19 7 15"></polyline>
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                </svg>
+            </button>` : '';
 
         return `
             <div class="product-card">
                 <div class="product-header">
                     <div class="product-info">
-                        <h3 class="product-name">${product.name}</h3>
+                        <h3 class="product-name">${ticketBadge}${product.name}</h3>
                         <p class="product-details">${product.quantity} × ${product.price.toFixed(2)} €</p>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
+                        ${moveButton}
                         <button class="btn-icon" onclick="editProduct(${product.id})" title="Editar">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -280,8 +356,12 @@ function addProduct() {
 
     if (!name) name = `Producto ${products.length + 1}`;
 
+    // Obtener ticket seleccionado (por defecto ticket 1)
+    const ticketRadio = document.querySelector('input[name="ticketSelect"]:checked');
+    const ticketId = ticketMode === 'dual' && ticketRadio ? parseInt(ticketRadio.value) : 1;
+
     const newProduct = {
-        id: Date.now(), name, price, quantity,
+        id: Date.now(), name, price, quantity, ticketId,
         offerCategory: currentOfferCategory,
         offerType: 'none', customType: '', customValue: 0, customX: 0, customY: 0
     };
@@ -420,7 +500,16 @@ function clearAllProducts() {
 }
 
 // Modales
-function openModal() { document.getElementById('modalForm').classList.remove('hidden'); }
+function openModal() {
+    document.getElementById('modalForm').classList.remove('hidden');
+
+    // Preseleccionar ticket según la vista actual
+    if (ticketMode === 'dual' && currentView !== 'all') {
+        const ticketNum = currentView === 'ticket1' ? '1' : '2';
+        const radio = document.querySelector(`input[name="ticketSelect"][value="${ticketNum}"]`);
+        if (radio) radio.checked = true;
+    }
+}
 function closeModal() {
     document.getElementById('modalForm').classList.add('hidden');
     resetForm(); // Siempre resetear al cerrar para evitar que el estado de edición persista
@@ -492,6 +581,16 @@ function updateCouponCustomInputs() {
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
+
+    // Inicializar UI según modo guardado
+    if (ticketMode === 'dual') {
+        document.getElementById('viewSelector').classList.remove('hidden');
+        document.getElementById('ticketSelector')?.classList.remove('hidden');
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === ticketMode);
+        });
+    }
+
     render();
 
     document.getElementById('btnAddProduct').addEventListener('click', openModal);
@@ -501,6 +600,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnClearAll').addEventListener('click', openConfirmModal);
     document.getElementById('btnCancelDelete').addEventListener('click', closeConfirmModal);
     document.getElementById('btnConfirmDelete').addEventListener('click', clearAllProducts);
+
+    // Event listeners para modo ticket
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => setTicketMode(btn.dataset.mode));
+    });
+
+    // Event listeners para selector de vista
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => setCurrentView(btn.dataset.view));
+    });
 
     document.querySelectorAll('.category-btn').forEach(btn => btn.addEventListener('click', () => switchOfferCategory(btn.dataset.category)));
 
@@ -521,3 +630,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.deleteProduct = deleteProduct;
 window.editProduct = editProduct;
+window.moveProduct = moveProduct;

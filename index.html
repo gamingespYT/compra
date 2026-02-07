@@ -26,14 +26,28 @@
                     <p class="subtitle">Supermercado Inteligente</p>
                 </div>
             </div>
-            <button id="btnClearAll" class="btn-icon" title="Limpiar lista">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-            </button>
+            <div class="header-actions">
+                <!-- Toggle modo ticket -->
+                <div id="ticketModeToggle" class="ticket-mode-toggle">
+                    <button id="btn1Ticket" class="mode-btn active" data-mode="single">1T</button>
+                    <button id="btn2Tickets" class="mode-btn" data-mode="dual">2T</button>
+                </div>
+                <button id="btnClearAll" class="btn-icon" title="Limpiar lista">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
+
+    <!-- Selector de vista (solo visible en modo 2 tickets) -->
+    <div id="viewSelector" class="view-selector hidden">
+        <button class="view-btn active" data-view="all">General</button>
+        <button class="view-btn" data-view="ticket1">Ticket 1</button>
+        <button class="view-btn" data-view="ticket2">Ticket 2</button>
+    </div>
 
     <!-- Contenido principal -->
     <main class="main-content">
@@ -101,6 +115,21 @@
             </div>
 
             <div class="modal-body">
+                <!-- Selector de ticket (solo visible en modo 2 tickets) -->
+                <div id="ticketSelector" class="form-group ticket-selector hidden">
+                    <label>Asignar a ticket</label>
+                    <div class="offer-category-selector">
+                        <label class="offer-category-option">
+                            <input type="radio" name="ticketSelect" value="1" checked>
+                            <span class="category-label">🟢 Ticket 1</span>
+                        </label>
+                        <label class="offer-category-option">
+                            <input type="radio" name="ticketSelect" value="2">
+                            <span class="category-label">🟣 Ticket 2</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Nombre del producto</label>
                     <input type="text" id="inputName" placeholder="Ej: Leche entera 1L (opcional)">
