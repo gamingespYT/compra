@@ -72,6 +72,16 @@ function moveProduct(id) {
     }
 }
 
+function duplicateProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (product) {
+        const clone = { ...product, id: Date.now(), ticketId: product.ticketId === 1 ? 2 : 1 };
+        products.push(clone);
+        saveProducts();
+        render();
+    }
+}
+
 function getFilteredProducts() {
     if (ticketMode === 'single' || currentView === 'all') {
         return products;
@@ -245,6 +255,13 @@ function renderProducts() {
                     <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
                 </svg>
             </button>` : '';
+        const duplicateButton = showTicketBadge ? `
+            <button class="btn-duplicate" onclick="duplicateProduct(${product.id})" title="Duplicar al otro ticket">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </button>` : '';
 
         return `
             <div class="product-card">
@@ -254,6 +271,7 @@ function renderProducts() {
                         <p class="product-details">${product.quantity} × ${product.price.toFixed(2)} €</p>
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
+                        ${duplicateButton}
                         ${moveButton}
                         <button class="btn-icon" onclick="editProduct(${product.id})" title="Editar">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -487,6 +505,10 @@ function editProduct(id) {
         }
     }
 
+    // Preseleccionar el ticket del producto
+    const ticketRadio = document.querySelector(`input[name="ticketSelect"][value="${product.ticketId}"]`);
+    if (ticketRadio) ticketRadio.checked = true;
+
     // Cambiar título del modal
     document.querySelector('#modalForm h2').textContent = 'Editar Producto';
     openModal();
@@ -503,8 +525,8 @@ function clearAllProducts() {
 function openModal() {
     document.getElementById('modalForm').classList.remove('hidden');
 
-    // Preseleccionar ticket según la vista actual
-    if (ticketMode === 'dual' && currentView !== 'all') {
+    // Preseleccionar ticket según la vista actual (solo si NO estamos editando)
+    if (ticketMode === 'dual' && currentView !== 'all' && !editingProductId) {
         const ticketNum = currentView === 'ticket1' ? '1' : '2';
         const radio = document.querySelector(`input[name="ticketSelect"][value="${ticketNum}"]`);
         if (radio) radio.checked = true;
@@ -631,3 +653,4 @@ document.addEventListener('DOMContentLoaded', () => {
 window.deleteProduct = deleteProduct;
 window.editProduct = editProduct;
 window.moveProduct = moveProduct;
+window.duplicateProduct = duplicateProduct;
